@@ -1,0 +1,33 @@
+{
+    "name": "earc/data-primary-key-generator",
+    "description": "eArc - the explicit architecture framework - data primary key generator component",
+    "type": "library",
+    "license": "MIT",
+    "version": "dev-0.0",
+    "authors": [
+        {
+            "name": "Thomas Koudela",
+            "email": "thomas@koudela.net"
+        }
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable" : true,
+    "require": {
+        "php": "^8.0",
+        "earc/data": "dev-master",
+        "earc/data-filesystem": "dev-master"
+    },
+    "suggest": {
+        "ext-redis": "*"
+    },
+    "autoload": {
+        "psr-4" : {
+            "eArc\\DataPrimaryKeyGenerator\\" : "src/",
+            "eArc\\DataPrimaryKeyGeneratorTests\\" : "tests/"
+        }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "*",
+        "symfony/var-dumper": "*"
+    }
+}
