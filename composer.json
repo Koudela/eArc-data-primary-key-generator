@@ -3,7 +3,7 @@
     "description": "eArc - the explicit architecture framework - data primary key generator component",
     "type": "library",
     "license": "MIT",
-    "version": "dev-0.0",
+    "version": "0.0",
     "authors": [
         {
             "name": "Thomas Koudela",
@@ -14,8 +14,8 @@
     "prefer-stable" : true,
     "require": {
         "php": "^8.0",
-        "earc/data": "dev-master",
-        "earc/data-filesystem": "dev-master"
+        "earc/data": "^0.0",
+        "earc/data-filesystem": "0.0"
     },
     "suggest": {
         "ext-redis": "*"

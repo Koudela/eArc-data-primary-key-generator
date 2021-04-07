@@ -12,8 +12,10 @@ namespace eArc\DataPrimaryKeyGenerator;
 
 interface ParameterInterface
 {
-    // will be used hash key (USE_REDIS) or as last dirname (USE_FILESYSTEM);
-    const NAME = 'earc.data_primary_key_generator.name'; // default 'earc-data-pk-gen'
+    const HASH_KEY_NAME = 'earc.data_primary_key_generator.hash_key_name'; // default 'earc-data-pk-gen'
+    const DIR_NAME_POSTFIX = 'earc.data_primary_key_generator.dir_name_postfix'; // default '@earc-data-pk-gen'
     // may be set PrimaryKeyGenerator::USE_REDIS or PrimaryKeyGenerator::USE_FILESYSTEM
     const INFRASTRUCTURE = 'earc.data_primary_key_generator.infrastructure'; // default USE_FILESYSTEM
+    const REDIS_CONNECTION = 'earc.data_primary_key_generator.redis_connection'; // default ['localhost']
+    const DEFAULT_INTERFACE = 'earc.data_primary_key_generator.default_interface'; // default AutoUUIDPrimaryKeyInterface::class
 }

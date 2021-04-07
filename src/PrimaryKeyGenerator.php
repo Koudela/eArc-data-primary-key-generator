@@ -23,36 +23,56 @@ class PrimaryKeyGenerator implements OnAutoPrimaryKeyInterface
     const USE_FILESYSTEM = 'fs';
 
     protected Redis|null $redis = null;
-    protected string $name;
+    protected string $hashKeyName;
+    protected string $dirName;
     protected string $infrastructure;
+    protected string $default;
 
     public function __construct()
     {
-        $this->name = di_param(ParameterInterface::NAME, 'earc-data-pk-gen');
+        $this->hashKeyName = di_param(ParameterInterface::HASH_KEY_NAME, 'earc-data-pk-gen');
+        $this->dirName = di_param(ParameterInterface::DIR_NAME_POSTFIX, '@earc-data-pk-gen');
         $this->infrastructure = di_param(ParameterInterface::INFRASTRUCTURE, self::USE_FILESYSTEM);
+        $this->default = di_param(ParameterInterface::DEFAULT_INTERFACE, AutoUUIDPrimaryKeyInterface::class);
 
         if ($this->infrastructure === self::USE_REDIS) {
             $this->redis = new Redis();
+            $this->redis->connect(...di_param(ParameterInterface::REDIS_CONNECTION, ['localhost']));
         }
     }
 
-    public function onAutoPrimaryKey(AutoPrimaryKeyInterface $entity): string|null
+    public function onAutoPrimaryKey(AutoPrimaryKeyInterface $entity): string
     {
         if ($entity instanceof AutoUUIDPrimaryKeyInterface) {
             return $this->UUIDv4();
         }
 
         if ($entity instanceof AutoincrementPrimaryKeyInterface) {
-            if ($this->infrastructure === self::USE_FILESYSTEM) {
-                return $this->getAutoIncrementIdFS($entity::class);
-            }
-
-            if ($this->infrastructure === self::USE_REDIS) {
-                return $this->getAutoIncrementIdRedis($entity::class);
-            }
+            return $this->getAutoIncrementId($entity);
         }
 
-        return null;
+        if ($this->default === AutoUUIDPrimaryKeyInterface::class) {
+            return $this->UUIDv4();
+        }
+
+        if ($this->default === AutoincrementPrimaryKeyInterface::class) {
+            return $this->getAutoIncrementId($entity);
+        }
+
+        throw new DataException('{97b09729-f8d4-4157-a89e-b9c6f96757d8} Could not determine generation strategy for primary key.');
+    }
+
+    public function getAutoIncrementId(AutoPrimaryKeyInterface $entity): string
+    {
+        if ($this->infrastructure === self::USE_FILESYSTEM) {
+            return $this->getAutoIncrementIdFS($entity::class);
+        }
+
+        if ($this->infrastructure === self::USE_REDIS) {
+            return $this->getAutoIncrementIdRedis($entity::class);
+        }
+
+        throw new DataException('{c390b3f1-6c6f-4261-9088-2b0c34c0b456} Could not determine generation strategy for primary key.');
     }
 
     /**
@@ -64,7 +84,7 @@ class PrimaryKeyGenerator implements OnAutoPrimaryKeyInterface
      */
     public function getAutoIncrementIdFS(string $fQCN): string
     {
-        di_static(StaticDirectoryService::class)::forceChdir($fQCN, '@'.$this->name);
+        di_static(StaticDirectoryService::class)::forceChdir($fQCN, $this->dirName);
 
         $filename = 'auto-increment-id.txt';
 
@@ -103,17 +123,17 @@ class PrimaryKeyGenerator implements OnAutoPrimaryKeyInterface
      */
     public function getAutoIncrementIdRedis(string $fQCN): string
     {
-        if (!$this->redis->hExists($this->name, $fQCN)) {
+        if (!$this->redis->hExists($this->hashKeyName, $fQCN)) {
             $max = 0;
             foreach (data_find($fQCN, []) as $primaryKey) {
                 $max = max($max, (int) $primaryKey);
             }
-            $this->redis->hSet($this->name, $fQCN, $max+1);
+            $this->redis->hSet($this->hashKeyName, $fQCN, $max+1);
 
-            return $max+1;
+            return (string) ($max+1);
         }
 
-        return (string) $this->redis->hIncrBy($this->name, $fQCN, 1);
+        return (string) $this->redis->hIncrBy($this->hashKeyName, $fQCN, 1);
     }
 
     public function UUIDv4(): string
